@@ -91,3 +91,14 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+
+// trace the syscalls that is designated by tmask
+uint64
+sys_trace(void)
+{
+  struct proc *p = myproc();
+  if(p == 0) return -1;
+  argint(0, &(p->tmask));
+  return 0;
+}

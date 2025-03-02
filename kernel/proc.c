@@ -276,6 +276,7 @@ growproc(int n)
 
 // Create a new process, copying the parent.
 // Sets up child kernel stack to return as if from fork() system call.
+// Modified to maintain tmask for syscall tracing.
 int
 fork(void)
 {
@@ -311,6 +312,9 @@ fork(void)
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
+
+  // Copy tmask.
+  np->tmask = p->tmask;
 
   release(&np->lock);
 
