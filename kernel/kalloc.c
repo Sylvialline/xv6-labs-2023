@@ -21,6 +21,7 @@ struct run {
 struct {
   struct spinlock lock;
   struct run *freelist;
+  int num;
 } kmem;
 
 void
@@ -60,6 +61,8 @@ kfree(void *pa)
   r->next = kmem.freelist;
   kmem.freelist = r;
   release(&kmem.lock);
+
+  kmem.num++;
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -76,8 +79,10 @@ kalloc(void)
     kmem.freelist = r->next;
   release(&kmem.lock);
 
-  if(r)
+  if(r){
     memset((char*)r, 5, PGSIZE); // fill with junk
+    kmem.num--;
+  }
   return (void*)r;
 }
 
@@ -85,11 +90,5 @@ kalloc(void)
 int
 listsz(void)
 {
-  struct run *r;
-  int sz = 0;
-  acquire(&kmem.lock);
-  for(r = kmem.freelist; r; r = r->next)
-    sz++;
-  release(&kmem.lock);
-  return sz;
+  return kmem.num;
 }
