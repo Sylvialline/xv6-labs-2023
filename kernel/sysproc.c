@@ -92,8 +92,10 @@ uint64
 sys_sigalarm(void)
 {
   struct alarm *alarm = &myproc()->alarm;
+  uint64 addr;
   argint(0, &alarm->interval);
-  argaddr(1, &alarm->handler);
+  argaddr(1, &addr);
+  alarm->handler = (void(*)())addr;
   alarm->lticks = uptime();
   return 0;
 }

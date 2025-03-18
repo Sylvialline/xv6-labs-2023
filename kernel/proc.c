@@ -55,8 +55,6 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
-      p->alarm.interval = 0;
-      p->alarm.inhand = 0;
   }
 }
 
@@ -147,6 +145,10 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+
+  // init alarm
+  p->alarm.interval = 0;
+  p->alarm.inhand = 0;
 
   return p;
 }

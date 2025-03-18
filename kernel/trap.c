@@ -36,9 +36,10 @@ alarmintr()
   struct alarm *alarm = &p->alarm;
   
   if(alarm->inhand) return;
-  alarm->inhand = 1;
-  
+
   if(alarm->interval && uptime() >= alarm->lticks + alarm->interval) {
+    alarm->inhand = 1;
+
     // NOT alarm->lticks = uptime()
     alarm->lticks += alarm->interval;
 
@@ -46,8 +47,7 @@ alarmintr()
     alarm->regs = *p->trapframe;
 
     // install handler
-    p->trapframe->epc = alarm->handler;
-
+    p->trapframe->epc = (uint64)alarm->handler;
   }
 }
 
@@ -109,7 +109,7 @@ usertrap(void)
 
   
   if(which_dev == 2) {
-    // only handle alarm when traping from user
+    // handle alarm only when traping from user
     // because we don't want to be interupted when handling alarm traps
     alarmintr();
 
