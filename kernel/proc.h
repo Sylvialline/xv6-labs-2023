@@ -81,6 +81,20 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+struct alarm {
+  int interval;      // inited as 0 in procinit
+  int lticks;        // last tick when alarmed
+  void (*handler)(); // pointer to handler, which must return with sigreturn
+  
+  // whether will go into handler and not yet return from sigreturn
+  int inhand;
+
+  // both caller and callee saved regs need to be saved and resumed
+  // user thread does not expect calling handler so caller-saved regs need to be resumed
+  // handler returns to user thread by sigreturn instead of ret so callee-saved regs need, too
+  struct trapframe regs;
+};
+
 // Per-process state
 struct proc {
   struct spinlock lock;
@@ -104,4 +118,6 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  struct alarm alarm;
 };

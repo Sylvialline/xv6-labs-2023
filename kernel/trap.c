@@ -29,6 +29,37 @@ trapinithart(void)
   w_stvec((uint64)kernelvec);
 }
 
+void
+alarmintr()
+{
+  struct proc *p = myproc();
+  struct alarm *alarm = &p->alarm;
+  
+  if(alarm->inhand) return;
+  alarm->inhand = 1;
+  
+  if(alarm->interval && uptime() >= alarm->lticks + alarm->interval) {
+    // NOT alarm->lticks = uptime()
+    alarm->lticks += alarm->interval;
+
+    // save all regs in trapframe, will be resumed in sigreturn
+    alarm->regs = *p->trapframe;
+
+    // install handler
+    p->trapframe->epc = alarm->handler;
+
+  }
+}
+
+void
+sigreturn()
+{
+  struct proc *p = myproc();
+  struct alarm *alarm = &p->alarm;
+  *p->trapframe = alarm->regs;
+  alarm->inhand = 0;
+}
+
 //
 // handle an interrupt, exception, or system call from user space.
 // called from trampoline.S
@@ -76,9 +107,15 @@ usertrap(void)
   if(killed(p))
     exit(-1);
 
-  // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  
+  if(which_dev == 2) {
+    // only handle alarm when traping from user
+    // because we don't want to be interupted when handling alarm traps
+    alarmintr();
+
+    // give up the CPU if this is a timer interrupt.
     yield();
+  }
 
   usertrapret();
 }

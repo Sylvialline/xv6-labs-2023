@@ -85,10 +85,22 @@ sys_kill(void)
 uint64
 sys_uptime(void)
 {
-  uint xticks;
+  return uptime();
+}
 
-  acquire(&tickslock);
-  xticks = ticks;
-  release(&tickslock);
-  return xticks;
+uint64
+sys_sigalarm(void)
+{
+  struct alarm *alarm = &myproc()->alarm;
+  argint(0, &alarm->interval);
+  argaddr(1, &alarm->handler);
+  alarm->lticks = uptime();
+  return 0;
+}
+
+uint64
+sys_sigreturn(void)
+{
+  sigreturn();
+  return myproc()->trapframe->a0; // avoid changing a0
 }
