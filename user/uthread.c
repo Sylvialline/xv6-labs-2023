@@ -80,8 +80,6 @@ thread_schedule(void)
      * thread_switch(??, ??);
      */
     thread_switch(&t->context, &next_thread->context);
-  } else{
-    // next_thread = 0;
   }
 }
 
